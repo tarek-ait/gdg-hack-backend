@@ -1,0 +1,2 @@
+# routes
+Routes are used to define the endpoints for the API. They serve as a way to direct API requests to the appropriate destination. Just as we check a route to reach a physical destination, routes in an API guide request to the correct endpoints.
