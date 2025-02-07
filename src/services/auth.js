@@ -118,7 +118,6 @@ export const updateProfile = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(userID, updateFields, {
       new: true,
     });
-
     res.status(200).json({ updatedUser });
   } catch (error) {
     console.error(error.message);
@@ -173,3 +172,14 @@ export const addFieldOfInterest = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

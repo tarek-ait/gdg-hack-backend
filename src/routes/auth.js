@@ -1,5 +1,5 @@
 import express from 'express';
-import {signup,login,logout,checkAuth,updateProfile,getUserProfile, addFieldOfInterest} from '../services/auth.js'
+import {signup,login,logout,checkAuth,updateProfile,getUserProfile, addFieldOfInterest,getUsers} from '../services/auth.js'
 import { protectRoute } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -17,5 +17,7 @@ router.put("/update", protectRoute, updateProfile);
 router.get("/getProfile",protectRoute,getUserProfile);
 
 router.post("/fields",protectRoute,addFieldOfInterest);
+
+router.get("/users",protectRoute,getUsers);
 
 export default router;
