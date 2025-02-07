@@ -1,5 +1,7 @@
 import User from '../db/models/userSchema.js';
 import Project from '../db/models/projectSchema.js';
+import {projectAccepted} from '../mail/templates/projectAccept.js'
+import { sendEmail } from '../mail/send.js';
 
 // function to create a new project
 export const createProject = async (req, res) => {
@@ -121,6 +123,10 @@ export const acceptRequest = async (req, res) => {
     user.joinedProjects.push(projectId);
     await user.save();
 
+    const subject = `Welcome to ${project.title}!`;
+    const emailContent = projectAccepted(user.userName, project.title);
+    await sendEmail(user.email, subject, emailContent);
+
     res.status(200).json({ message: 'Request accepted successfully', project });
   } catch (error) {
     console.error(error);
@@ -141,3 +147,84 @@ export const getProjects = async (req, res) => {
 };
 
 // other functions may be implemented later 
+
+
+export const refuseRequest = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.body.userId;
+    const ownerId = req.user.id; // use the middleware protected route
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.owner.toString() !== ownerId) {
+      return res
+        .status(403)
+        .json({ message: 'You are not authorized to refuse requests' });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const requestIndex = project.requests.findIndex(
+      (request) => request.userId.toString() === userId,
+    );
+    if (requestIndex === -1) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    project.requests[requestIndex].status = 'Refused';
+    await project.save();
+
+
+    res.status(200).json({ message: 'Request Refused', project });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const invite= async (req,res)=>{
+  try {
+    const projectId = req.params.id;
+    const {userName} = req.body;
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+   
+
+    const user = await User.findById(userName);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (project.collaborators.includes(user._id)) {
+      return res.status(400).json({ message: 'You are already a contributor' });
+    }
+    // push the user to the project requestslist , and a message and the created at
+    project.requests.push({
+      user:user._id,
+      status: 'Pending',
+      message: 'requested to join',
+      createdAt: new Date(),
+    });
+    await project.save();
+
+    res
+      .status(200)
+      .json({ message: 'You have successfully joined the project', project });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
