@@ -123,9 +123,12 @@ export const acceptRequest = async (req, res) => {
     user.joinedProjects.push(projectId);
     await user.save();
 
-    const subject = `Welcome to ${project.title}!`;
-    const emailContent = projectAccepted(user.userName, project.title);
-    await sendEmail(user.email, subject, emailContent);
+    //this is the email notification that will be sent to the user
+    //commented because of a bug in the email sending probably because of using ESI local network
+
+    // const subject = `Welcome to ${project.title}!`;
+    // const emailContent = projectAccepted(user.userName, project.title);
+    // await sendEmail(user.email, subject, emailContent);
 
     res.status(200).json({ message: 'Request accepted successfully', project });
   } catch (error) {
