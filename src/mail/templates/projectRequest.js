@@ -1,4 +1,4 @@
-export function projectRequestReceived(ownerName, applicantName, projectName) {
+export function projectRequest(ownerName, applicantName, projectName) {
     return `<!DOCTYPE html>
     <html>
       <head><title>New Project Join Request</title></head>

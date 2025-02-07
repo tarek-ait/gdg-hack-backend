@@ -1,10 +1,8 @@
-import {
-  projectAccepted,
-  projectInvitation,
-  projectRefuse,
-  projectRequest,
-} from '../services/projects';
-import { sendEmail } from '../mail/send';
+import { projectAccepted } from '../mail/templates/projectAccept.js';
+import { projectInvitation } from '../mail/templates/projectInvitation.js';
+import { projectRequest } from '../mail/templates/projectRequest.js';
+import { projectRefused } from '../mail/templates/projectRefuse.js';
+import { sendEmail } from '../mail/send.js';
 
 export const accepted = async (req, res) => {
   try {
@@ -49,7 +47,7 @@ export const refused = async (req, res) => {
   try {
     const { email } = req.body;
     const subject = 'Refused';
-    const htmlContent = projectRefuse();
+    const htmlContent = projectRefused();
     await sendEmail(email, subject, htmlContent);
     res.status(200).json({ message: 'Email sent successfully' });
   } catch (error) {

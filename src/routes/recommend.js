@@ -1,10 +1,11 @@
-import express from "express";
-import User from "../db/models/userSchema.js";
+import express from 'express';
+import { protectRoute } from '../middlewares/auth.js';
+import { projects,teammates } from '../services/recommend.js';
 
 const router = express.Router();
 
-router.post("/recommendations", async (req, res) => {
-    
-});
+router.post('/recommendations/projects', protectRoute,projects);
+
+router.post('/recommendations/teammates', protectRoute, teammates);
 
 export default router;

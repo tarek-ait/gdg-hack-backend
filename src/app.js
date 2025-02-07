@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import projectsRourtes from './routes/projects.js';
 import recommendRoutes from './routes/recommend.js';
+import emailRoutes from './routes/emails.js';
 
 const app = express();
 
@@ -20,5 +21,6 @@ app.use(cors(
 app.use('/api', authRoutes);
 app.use('/api', projectsRourtes);
 app.use('/api',recommendRoutes);
+app.use('/api',emailRoutes);
 
 export {app}
