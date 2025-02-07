@@ -100,20 +100,24 @@ export const checkAuth = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const { profilePic, newPassword, ...updates } = req.body;
     const userID = req.user._id;
 
-    if (!profilePic) {
-      return res.status(400).json({ message: 'Profile picture is required' });
+    let updateFields = { ...updates };
+
+    if (profilePic) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePic);
+      updateFields.profilePic = uploadResponse.secure_url;
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    const updatedUser = await User.findByIdAndUpdate(
-      userID,
-      { profilePic: uploadResponse.secure_url },
-      { new: true },
-    );
+    if (newPassword) {
+      const salt = await bcrypt.genSalt(10);
+      updateFields.password = await bcrypt.hash(newPassword, salt);
+    }
 
+    const updatedUser = await User.findByIdAndUpdate(userID, updateFields, {
+      new: true,
+    });
     res.status(200).json({ updatedUser });
   } catch (error) {
     console.error(error.message);
@@ -177,3 +181,5 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
