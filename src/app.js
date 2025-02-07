@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 import authRoutes from './routes/auth.js';
+import emailroutes from './routes/sendEmails.js'
 
 const app = express();
 
@@ -16,5 +17,6 @@ app.use(cors(
 ));
 
 app.use('/api', authRoutes);
+app.use('/api',emailroutes);
 
 export {app}

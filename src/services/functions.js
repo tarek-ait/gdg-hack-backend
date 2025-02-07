@@ -50,6 +50,7 @@ export const joinProject=async (req,res)=>{
     project.contributors.push(userId);
     await project.save();
 
+
     res.status(200).json({ message: 'You have successfully joined the project', project });
     } catch (error) {
         console.error(error);
