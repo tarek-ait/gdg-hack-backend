@@ -1,62 +1,143 @@
 import User from '../db/models/userSchema.js';
-import Project from '../db/models/projectSchema.js'
+import Project from '../db/models/projectSchema.js';
 
-export const createProject = async (req,res)=>{
-    try{
-            const {title,description,skillsRequired} =req.body;
-            if (!title || !description) {
-                return res.status(400).json({message:'Title and description are required'});
-            }
-            const newProject=new Project({
-                title,
-                description,
-                skillsRequired,
-                createBy:req.user._id,
-                contributors:[req.user._id]
-            });
+// function to create a new project
+export const createProject = async (req, res) => {
+  try {
+    // the data we must provide,
+    // the status, title, description, project category, wether its public or private, requirements, and resources (array of string
 
-            await newProject.save();
+    const {
+      title,
+      description,
+      projectCategory,
+      isPublic,
+      requirements,
+      resources,
+    } = req.body;
+    // the owner is the user id
+    const owner = req.user.id;
+    // create a new project
+    const project = new Project({
+      title,
+      description,
+      requirements,
+      owner,
+      projectCategory,
+      isPublic,
+      resources,
+    });
+    // save the project
+    await project.save();
+    // add the project to the user joined projects
+    const user = await User.findById(owner);
+    user.joinedProjects.push(project._id);
+    await user.save();
+    // return the project
+    res.status(201).json({ message: 'Project created successfully', project });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
-            res.status(201).json({message:'Project created successfully', project:newProject})
-    }catch(error){
-        consol.error(error.message);
-        res.status(500).json({message:'Server error'});
+// send request, and save it in the project
+export const joinProject = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
     }
-}
-
-// send request 
-export const joinProject=async (req,res)=>{
-    try {
-        const projectId=req.params.id;
-        const userId=req.user.id;
-
-        const project =await Project.findById(projectId);
-        if (!project) {
-            return res.status(404).json({message:'Project not found'});
-        }
-        if (project.contributors.includes(userId)) {
-            return res.status(400).json({message:'You are already a contributor'})
-        }
-        const user=await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const hasRequiredSkills = project.skillsRequired.some(skill => user.skills.includes(skill));
-
-    if (!hasRequiredSkills) {
-        return res.status(403).json({ message: 'You do not have the required skills to join this project' });
+    if (project.collaborators.includes(userId)) {
+      return res.status(400).json({ message: 'You are already a contributor' });
     }
 
-    // Add user to contributors list
-    project.contributors.push(userId);
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // push the user to the project requestslist , and a message and the created at
+    project.requests.push({
+      userId,
+      status: 'Pending',
+      message: 'requested to join',
+      createdAt: new Date(),
+    });
+    await project.save();
+
+    res
+      .status(200)
+      .json({ message: 'You have successfully joined the project', project });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// accept a request, use the middleware to get the user information, and only th owner is allowed to accept request
+export const acceptRequest = async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.body.userId;
+    const ownerId = req.user.id; // use the middleware protected route
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (project.owner.toString() !== ownerId) {
+      return res
+        .status(403)
+        .json({ message: 'You are not authorized to accept requests' });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const requestIndex = project.requests.findIndex(
+      (request) => request.userId.toString() === userId,
+    );
+    if (requestIndex === -1) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    project.requests[requestIndex].status = 'Accepted';
+    await project.save();
+
+    // add the user to the collaborators
+    project.collaborators.push(userId);
     await project.save();
 
     user.joinedProjects.push(projectId);
     await user.save();
 
-    res.status(200).json({ message: 'You have successfully joined the project', project });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-}
+    res.status(200).json({ message: 'Request accepted successfully', project });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// function to get all the projects 
+export const getProjects = async (req, res) => {
+  try {
+    const projects = await Project.find();
+    res.status(200).json({ projects });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// other functions may be implemented later 
