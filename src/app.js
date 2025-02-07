@@ -16,7 +16,7 @@ app.use(cors(
     }
 ));
 
-app.use('/api', authRoutes);
-app.use('/api',emailroutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/mail',emailroutes);
 
 export {app}

@@ -6,7 +6,7 @@ import { projectUpdate } from "../mail/templates/projectUpdate.js";
 
 export const invite=async (req,res)=>{
     const{email,name,projectName}=req.body;
-        const inviteName=req.user.name;
+        const inviteName="test"
     
         try {
             const subject = "You're Invited to Join a Project!";

@@ -1,25 +1,32 @@
 import nodemailer from "nodemailer";
 
+
 const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: 'live.smtp.mailtrap.io',
+    port: 587,
+    secure: false,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+      user: '1a2b3c4d5e6f7g',
+      pass: '1a2b3c4d5e6f7g',
+    }
+  });
 
 // Function to send an email
 export const sendEmail = async (to, subject, htmlContent) => {
     try {
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: 'ret79222@gmail.com',
             to,
             subject,
-            html: htmlContent,
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`📧 Email sent to ${to}`);
+            text: htmlContent,
+          };
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          });
     } catch (error) {
         console.error("❌ Error sending email:", error);
     }
