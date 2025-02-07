@@ -16,6 +16,6 @@ router.put("/update", protectRoute, updateProfile);
 
 router.get("/getProfile",protectRoute,getUserProfile);
 
-router.post("/fiedls",protectRoute,addFieldOfInterest);
+router.post("/fields",protectRoute,addFieldOfInterest);
 
 export default router;
