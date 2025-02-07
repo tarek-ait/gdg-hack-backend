@@ -3,9 +3,9 @@ import User from '../db/models/userSchema.js';
 import bcrypt from 'bcryptjs';
 
 export const signup = async (req, res) => {
-  const { userName,firstName,lastName, email, password } = req.body;
+  const { userName, firstName, lastName, email, password } = req.body;
   try {
-    if (!userName|| !firstName || !lastName || !email || !password) {
+    if (!userName || !firstName || !lastName || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
     if (password.length < 8) {
@@ -100,73 +100,80 @@ export const checkAuth = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic} = req.body;
+    const { profilePic } = req.body;
     const userID = req.user._id;
 
     if (!profilePic) {
-      return res.status(400).json({ message: "Profile picture is required" });
+      return res.status(400).json({ message: 'Profile picture is required' });
     }
 
     const uploadResponse = await cloudinary.uploader.upload(profilePic);
     const updatedUser = await User.findByIdAndUpdate(
       userID,
       { profilePic: uploadResponse.secure_url },
-      { new: true }
+      { new: true },
     );
 
     res.status(200).json({ updatedUser });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
-
-// function to get the user infos, the projects, socials 
-// except the password 
+// function to get the user infos, the projects, socials
+// except the password
 export const getUserProfile = async (req, res) => {
   try {
     const userID = req.user.get('id');
     const user = await User.findById(userID)
-    .populate('createdProjects')
-    .populate('joinedProjects');
+      .populate('createdProjects')
+      .populate('joinedProjects');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    // exclude the password 
+    // exclude the password
     const { password, ...userInfo } = user.toObject();
     res.status(200).json(userInfo);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server Error' });
   }
-};  
+};
 
 // function to assing the user field of interest
 export const addFieldOfInterest = async (req, res) => {
   try {
     const userID = req.user.get('id');
-    const { fieldOfInterest } = req.body; // array of strings 
+    const { fieldOfInterest } = req.body; // array of strings
     if (!fieldOfInterest) {
       return res.status(400).json({ message: 'Field of interest is required' });
     }
-    const user =
-    await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       userID,
       { fieldOfInterest },
-      { new: true }
+      { new: true },
     );
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    user.fieldsOfInterest = [...new Set([...user.fieldsOfInterest, ...fieldOfInterest])];
+    user.fieldsOfInterest = [
+      ...new Set([...user.fieldsOfInterest, ...fieldOfInterest]),
+    ];
     await user.save();
     res.status(200).json(user);
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Server Error' });
   }
-}
+};
+
+export const getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
