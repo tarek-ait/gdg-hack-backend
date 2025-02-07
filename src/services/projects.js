@@ -1,5 +1,5 @@
 import User from '../db/models/userSchema.js';
-import Project from '../models/projectSchema.js'
+import Project from '../db/models/projectSchema.js'
 
 export const createProject = async (req,res)=>{
     try{
@@ -24,6 +24,7 @@ export const createProject = async (req,res)=>{
     }
 }
 
+// send request 
 export const joinProject=async (req,res)=>{
     try {
         const projectId=req.params.id;
@@ -49,6 +50,9 @@ export const joinProject=async (req,res)=>{
     // Add user to contributors list
     project.contributors.push(userId);
     await project.save();
+
+    user.joinedProjects.push(projectId);
+    await user.save();
 
     res.status(200).json({ message: 'You have successfully joined the project', project });
     } catch (error) {

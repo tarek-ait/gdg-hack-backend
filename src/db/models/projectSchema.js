@@ -14,12 +14,12 @@ const projectSchema =new mongoose.Schema({
         type: [String], // Array of skills needed
         default: [],
     },
-    createdBy: {
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Reference to the User model
         required: true,
     },
-    contributors: [
+    collaborators: [
     {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Contributors are also users
@@ -29,13 +29,27 @@ const projectSchema =new mongoose.Schema({
         type: String,
         enum: ['Open', 'In Progress', 'Completed'],
         default: 'Open',
-    },  
+    },
+    projectCategory: {
+        type: [String],
+        default: [],
+    },
+    public: {
+        type: Boolean,
+        default: false,
+    },
+    // resources array of strings
+    resources: [
+        {
+            type: String,
+        }
+    ],
     createdAt: {
         type: Date,
         default: Date.now,
     },
 });
 
-const Project =mongoose.model('Project',projectSchema);
+const Project = mongoose.model('Project',projectSchema);
 
 export default Project;
