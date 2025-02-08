@@ -1,5 +1,6 @@
 import User from '../db/models/userSchema.js';
 import Project from '../db/models/projectSchema.js';
+import { sendNotification } from '../app.js';
 
 // function to create a new project
 export const createProject = async (req, res) => {
@@ -70,6 +71,8 @@ export const joinProject = async (req, res) => {
     });
     await project.save();
 
+    await sendNotification(project.owner, `User ${user.userName} requested to join your project ${project.title}`);
+
     res
       .status(200)
       .json({ message: 'You have successfully joined the project', project });
@@ -121,6 +124,8 @@ export const acceptRequest = async (req, res) => {
     user.joinedProjects.push(projectId);
     await user.save();
 
+    await sendNotification(userId, `Your request to join project ${project.title} has been accepted`);
+
     res.status(200).json({ message: 'Request accepted successfully', project });
   } catch (error) {
     console.error(error);
@@ -128,8 +133,7 @@ export const acceptRequest = async (req, res) => {
   }
 };
 
-
-// function to get all the projects 
+// function to get all the projects
 export const getProjects = async (req, res) => {
   try {
     const projects = await Project.find();
@@ -140,8 +144,7 @@ export const getProjects = async (req, res) => {
   }
 };
 
-// other functions may be implemented later 
-
+// other functions may be implemented later
 
 export const refuseRequest = async (req, res) => {
   try {
@@ -177,6 +180,7 @@ export const refuseRequest = async (req, res) => {
     project.requests[requestIndex].status = 'Refused';
     await project.save();
 
+    await sendNotification(userId, `Your request to join project ${project.title} has been refused`);
 
     res.status(200).json({ message: 'Request Refused', project });
   } catch (error) {
@@ -185,17 +189,16 @@ export const refuseRequest = async (req, res) => {
   }
 };
 
-export const invite= async (req,res)=>{
+export const invite = async (req, res) => {
   try {
     const projectId = req.params.id;
-    const {userName} = req.body;
+    const { userName } = req.body;
 
     const project = await Project.findById(projectId);
 
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
-   
 
     const user = await User.findById(userName);
 
@@ -207,12 +210,14 @@ export const invite= async (req,res)=>{
     }
     // push the user to the project requestslist , and a message and the created at
     project.requests.push({
-      user:user._id,
+      user: user._id,
       status: 'Pending',
       message: 'requested to join',
       createdAt: new Date(),
     });
     await project.save();
+
+    await sendNotification(user._id, `You have been invited to join project ${project.title}`);
 
     res
       .status(200)
@@ -221,4 +226,4 @@ export const invite= async (req,res)=>{
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
-}
+};
