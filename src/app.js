@@ -7,7 +7,12 @@ import projectsRourtes from './routes/projects.js';
 import recommendRoutes from './routes/recommend.js';
 import emailRoutes from './routes/emails.js';
 
+import { Server } from 'socket.io';
+import http from 'http';
+import dotenv from 'dotenv';
+
 const app = express();
+dotenv.config();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -25,11 +30,9 @@ app.use('/api', emailRoutes);
 
 
 
-import { Server } from 'socket.io';
-import http from 'http';
-import dotenv from 'dotenv';
 
-dotenv.config();
+
+
 
 const server = http.createServer(app);
 const io = new Server(server, {
