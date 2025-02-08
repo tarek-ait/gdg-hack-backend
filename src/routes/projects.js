@@ -18,6 +18,4 @@ router.post('/projects/:id/refuse',protectRoute,refuseRequest)
 
 router.post('/projects/:id/invite',protectRoute,invite)
 
-
-
 export default router;
